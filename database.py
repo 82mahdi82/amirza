@@ -13,7 +13,7 @@ def ErrorReport(message, FunctionName, Type='General'):
 
 def CreateDatabase():
     import mysql.connector
-    config = {'user': 'root', 'password': 'pN4PeTdDoruUx8nCtT5f', 'host': 'dataamirza-xig-service'}
+    config = {'user': 'root', 'password': 'rFxetKD1rn2AMcITr2ig', 'host': 'dats-upg-service'}
     conn = mysql.connector.connect(**config)
     mycursor = conn.cursor()
     # mycursor.execute("DROP DATABASE IF EXISTS word_game")
@@ -21,6 +21,7 @@ def CreateDatabase():
     conn.commit()
     conn.close()
     print("Database Created")
+    print("...............................................ok..........................................")
 
 
 
