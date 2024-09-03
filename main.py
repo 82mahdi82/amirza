@@ -4,9 +4,9 @@ from text import robot_text
 import database
 import utils
 
-TOKEN ='7018847010:AAEMTrqs7mZRwxyaXE_XUgbyYPYzl_Twt3M' #'5067354118:AAEJmoFKEX8wifnCKPZXHS7YXE-CdaNAY8I'
+TOKEN = '7300074403:AAFwYTRXj8c9iib72mrOF5UcVfgxqKE5P4I' #'7018847010:AAEMTrqs7mZRwxyaXE_XUgbyYPYzl_Twt3M' 
 
-admin = 748626808 
+admin =234910 #748626808 
 channel_text = -1002236629948
 
 userStep={}
