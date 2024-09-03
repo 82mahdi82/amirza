@@ -4,6 +4,7 @@ from text import robot_text
 import database
 import utils
 
+database.CreateTable()
 TOKEN = '7300074403:AAFwYTRXj8c9iib72mrOF5UcVfgxqKE5P4I' #'7018847010:AAEMTrqs7mZRwxyaXE_XUgbyYPYzl_Twt3M' 
 
 admin = 193483410 #748626808 

@@ -201,4 +201,4 @@ def delete_words(level):
 
 
 # CreateDatabase()
-CreateTable()
+# CreateTable()
