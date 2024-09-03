@@ -200,5 +200,5 @@ def delete_words(level):
             ErrorReport('delete words','delete_words',Type='SQL Queries')
 
 
-CreateDatabase()
+# CreateDatabase()
 CreateTable()

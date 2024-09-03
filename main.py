@@ -6,7 +6,7 @@ import utils
 
 TOKEN = '7300074403:AAFwYTRXj8c9iib72mrOF5UcVfgxqKE5P4I' #'7018847010:AAEMTrqs7mZRwxyaXE_XUgbyYPYzl_Twt3M' 
 
-admin =234910 #748626808 
+admin = 193483410 #748626808 
 channel_text = -1002236629948
 
 userStep={}
