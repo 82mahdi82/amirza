@@ -1,4 +1,4 @@
 import os
-LogFile = 'web.log'
+LogFile = 'bot.log'
 Local = True
-config={'user': 'root', 'password': 'ma8h2dii', 'host': 'localhost','database':'word_game'}
+config={'user': 'root', 'password': 'n3gKJd4CiFTnovf9VpOb', 'host': 'amirzadata-rtc-service','database':'amirzadadlo_db'}

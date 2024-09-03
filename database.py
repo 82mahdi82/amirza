@@ -16,7 +16,7 @@ def CreateDatabase():
     config = {'user': 'root', 'password': 'ma8h2dii', 'host': 'localhost'}
     conn = mysql.connector.connect(**config)
     mycursor = conn.cursor()
-    mycursor.execute("DROP DATABASE IF EXISTS word_game")
+    # mycursor.execute("DROP DATABASE IF EXISTS word_game")
     mycursor.execute("CREATE DATABASE IF NOT EXISTS word_game")
     conn.commit()
     conn.close()
@@ -200,5 +200,5 @@ def delete_words(level):
             ErrorReport('delete words','delete_words',Type='SQL Queries')
 
 
-# CreateDatabase()
-# CreateTable()
+CreateDatabase()
+CreateTable()
