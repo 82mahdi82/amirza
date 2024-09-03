@@ -506,7 +506,7 @@ def handel_text(m):
     cid=m.chat.id
     mid=m.message_id
     list_users = database.select_user_by_leve()
-    text = 'نفرات برتر 📊'
+    text = 'نفرات برتر 📊\n'
     number = ['1⃣','2⃣','3⃣','4⃣','5⃣','6⃣','7⃣','8⃣','9⃣','🔟']
     for index in range(len(list_users)):
         text += f'{number[index]}. [{list_users[index]["name"]}](tg://user?id={list_users[index]["cid"]})     ➡     {list_users[index]["level"]} ⚜\n'
