@@ -106,8 +106,8 @@ def get_text_game(cid):
     words = database.select_words(instans_game.level)
     info_user = database.select_user(cid)[0]
     text = ''
-    text += f'لول {info_user['level']} ⚜\n'
-    text += f'موجودی {info_user['inventory']} سکه 🪙\n'
+    text += f'لول {info_user["level"]} ⚜\n'
+    text += f'موجودی {info_user["inventory"]} سکه 🪙\n'
     text += '➖➖➖➖➖➖➖➖➖➖➖➖\n'
     text += f'مرحله {instans_game.level}\n'
     text += 'کلمات : \n'
@@ -135,13 +135,13 @@ def get_text_game(cid):
                     index += 1
                 print(list_kalame)
                 text_kalame = ''.join(list_kalame)
-                text += f'✅ {get_number_word(word['word'])}: {text_kalame}\n'
+                text += f'✅ {get_number_word(word["word"])}: {text_kalame}\n'
             else:
-                text += f'✅ {get_number_word(word['word'])}: {kalame}\n'
+                text += f'✅ {get_number_word(word["word"])}: {kalame}\n'
         elif instans_game.is_completed(word['word']):
-            text += f'{get_number_word(word['word'])}: {word['word']} 🥳\n'
+            text += f'{get_number_word(word["word"])}: {word["word"]} 🥳\n'
         else:
-            text += f'{get_number_word(word['word'])}: {kalame}\n'
+            text += f'{get_number_word(word["word"])}: {kalame}\n'
 
     return text
 
@@ -159,7 +159,7 @@ def show_number_words(cid):
         elif dict_cid_class[cid].is_word_selected(word['word']):
             list_markup.append(InlineKeyboardButton(number_text + " ✅", callback_data = f'wordselect_selected'))
         else:
-            list_markup.append(InlineKeyboardButton(number_text, callback_data = f'wordselect_{info_user['level']}_{word['word']}'))
+            list_markup.append(InlineKeyboardButton(number_text, callback_data = f'wordselect_{info_user["level"]}_{word["word"]}'))
     markup.add(*list_markup)
 
 
@@ -175,7 +175,7 @@ def show_number_words(cid):
     markup.add(*list_markup2)
 
     markup.add(InlineKeyboardButton('راهنمایی | 90 سکه 🪙', callback_data=f'hint_{dict_cid_class[cid].level}'))
-    markup.add(InlineKeyboardButton('بازیابی', callback_data=f'bazyabi_{info_user['level']}'))
+    markup.add(InlineKeyboardButton('بازیابی', callback_data=f'bazyabi_{info_user["level"]}'))
     return markup
 
 
@@ -488,7 +488,7 @@ def get_photo(m):
     if get_user_step(cid) == 10:
         userStep[cid] == 0
         markup = InlineKeyboardMarkup()
-        markup.add(InlineKeyboardButton('قبول کردن', callback_data=f'arrived_accept_{cid}_{mid}_{dict_plan_information[cid]['seke']}'), InlineKeyboardButton('رد کردن', callback_data=f'arrived_reject_{cid}_{mid}'))
+        markup.add(InlineKeyboardButton('قبول کردن', callback_data=f'arrived_accept_{cid}_{mid}_{dict_plan_information[cid]["seke"]}'), InlineKeyboardButton('رد کردن', callback_data=f'arrived_reject_{cid}_{mid}'))
         bot.copy_message(admin, cid, mid, caption=robot_text['capcion_photo'].format('@'+m.from_user.username, f'[{m.from_user.first_name}](tg://user?id={cid})',dict_plan_information[cid]['seke'], dict_plan_information[cid]['price'] ), reply_markup = markup, parse_mode= 'Markdown')
         bot.send_message(cid, robot_text['send_arrive'], reply_markup=reply_markup_main(), reply_to_message_id=mid)
         
@@ -507,7 +507,7 @@ def handel_text(m):
     text = 'نفرات برتر 📊'
     number = ['1⃣','2⃣','3⃣','4⃣','5⃣','6⃣','7⃣','8⃣','9⃣','🔟']
     for index in range(len(list_users)):
-        text += f'{number[index]}. [{list_users[index]['name']}](tg://user?id={list_users[index]['cid']})     ➡     {list_users[index]['level']} ⚜\n'
+        text += f'{number[index]}. [{list_users[index]["name"]}](tg://user?id={list_users[index]["cid"]})     ➡     {list_users[index]["level"]} ⚜\n'
     bot.send_message(cid, text, parse_mode='Markdown')
 
 
