@@ -329,8 +329,8 @@ def def_admin(call):
         dict_plan_information.setdefault(cid, {})
         dict_plan_information[cid] = {'seke': number_seke, 'price': price}
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
-        markup.add()
-        bot.edit_message_text(robot_text['msg_send_number_cart'].format(number_seke, price), cid, mid)
+        markup.add(robot_text['cancel'])
+        bot.edit_message_text(robot_text['msg_send_number_cart'].format(number_seke, price), cid, mid, reply_markup=markup)
 
 
 
@@ -546,7 +546,10 @@ def handel_text(m):
     cid=m.chat.id
     text=m.text
     mid=m.message_id
-    if cid == admin:
+    if get_user_step(cid) == 10:
+        userStep[cid] = 0
+        bot.send_message(cid, robot_text['msg_csmcel'], reply_markup=markup_config_admin())
+    elif cid == admin:
         dict_edit_letters.clear()
         if cid in dict_new_letters:
             dict_new_letters.pop(cid)
