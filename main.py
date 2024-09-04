@@ -552,7 +552,7 @@ def handel_text(m):
     mid=m.message_id
     if get_user_step(cid) == 10:
         userStep[cid] = 0
-        bot.send_message(cid, robot_text['msg_csmcel'], reply_markup=markup_config_admin())
+        bot.send_message(cid, robot_text['msg_csmcel'], reply_markup=reply_markup_main())
     elif cid == admin:
         dict_edit_letters.clear()
         if cid in dict_new_letters:
