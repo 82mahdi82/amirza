@@ -330,7 +330,11 @@ def def_admin(call):
         dict_plan_information[cid] = {'seke': number_seke, 'price': price}
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add(robot_text['cancel'])
-        bot.edit_message_text(robot_text['msg_send_number_cart'].format(number_seke, price), cid, mid, reply_markup=markup)
+        bot.delete_message(cid, mid)
+        bot.send_message(cid, robot_text['msg_send_number_cart'].format(number_seke, price), reply_markup = markup)
+        # bot.edit_message_text(robot_text['msg_send_number_cart'].format(number_seke, price), cid, mid)
+        
+
 
 
 
