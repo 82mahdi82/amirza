@@ -242,8 +242,9 @@ def command_start(m):
                 info_user = check[0]
                 database.update_user(info_user['inventory']+400, uid)
                 bot.send_message(uid ,robot_text['invite_msg_user'].format(m.from_user.first_name))
-    else:
-        database.insert_user(cid, m.from_user.first_name)
+    
+    database.insert_user(cid, m.from_user.first_name)
+
 @bot.message_handler(commands=['config'])
 def command_start(m):
     cid = m.chat.id
