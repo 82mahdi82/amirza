@@ -8,7 +8,7 @@ database.CreateDatabase()
 database.CreateTable()
 TOKEN = '7300074403:AAFwYTRXj8c9iib72mrOF5UcVfgxqKE5P4I' #'7018847010:AAEMTrqs7mZRwxyaXE_XUgbyYPYzl_Twt3M' 
 
-admin = 193483410 #748626808 
+admin = 748626808 #193483410
 channel_text = -1002236629948
 
 userStep={}
@@ -16,9 +16,15 @@ dict_new_letters = {} # cid : letters
 dict_word = {}  # letters : [word1, word2, ...]
 
 dict_edit_letters = {} # level : 2, letters : abc, words: []
+dict_add_word = {}
 dict_cid_class = {}  # cid : class
 
 dict_plan_information = {}
+dict_shop_information = {}
+
+dict_adv = {}
+rezerv_adv = []
+dict_user_adv = {}
  
 def listener(messages):
     """
@@ -41,6 +47,13 @@ bot = telebot.TeleBot(TOKEN,num_threads=3)
 bot.set_update_listener(listener)
 
 #-----------------------------------------------------------------def----------------------------------------------------------
+def is_user_member(user_id, channel_id):
+    try:
+        chat_member = bot.get_chat_member(channel_id, user_id)
+        return chat_member.status == "member" or chat_member.status == "administrator" or chat_member.status == "creator"
+    except Exception as e:
+        return False
+
 def get_user_step(uid):
     if uid in userStep:
         return userStep[uid]
@@ -54,12 +67,16 @@ def markup_config_admin():
     markup.add(InlineKeyboardButton(robot_text['manage_word'], callback_data= 'admin_manageword')) 
     markup.add(InlineKeyboardButton('آمار',callback_data='admin_amar'))
     markup.add(InlineKeyboardButton('ارسال همگانی',callback_data='admin_brodcast'),InlineKeyboardButton('فوروارد همگانی',callback_data='admin_forall'))
+    markup.add(InlineKeyboardButton('افزودن کانال تبلیغاتی', callback_data='admin_adv'))
     return markup
 
 def reply_markup_main():
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(robot_text['game'])
     markup.add(robot_text['best'], robot_text['buy'])
+    markup.add(robot_text['shop'], robot_text['tabligh'])
+    markup.add(robot_text['invite'])
+
     # markup.add(robot_text['game'])
     return markup
 
@@ -166,7 +183,9 @@ def show_number_words(cid):
 
 
     list_markup2 = []
+    
     dict_letters = dict_cid_class[cid].letters
+    print('dict_letters',dict_letters)
     for id_letter in dict_letters:
         if dict_cid_class[cid].is_letter_selected(id_letter):
             list_markup2.append(InlineKeyboardButton(dict_letters[id_letter] + " ✅", callback_data = f'letterselect_selected'))
@@ -194,18 +213,36 @@ def markup_buy():
     markup.add(InlineKeyboardButton('10000 سکه 🪙 | قیمت 💳 30 تومن', callback_data='buy_30_10000'))
     markup.add(InlineKeyboardButton('50000 سکه 🪙 | قیمت 💳 100 تومن', callback_data='buy_100_50000'))
     return markup
+
+def shop_markup():
+    markup = InlineKeyboardMarkup()
+    markup.add(InlineKeyboardButton('2500 سکه 🪙 | 1 استارز', callback_data='shop_1_2500'))
+    markup.add(InlineKeyboardButton('10000 سکه 🪙 | 3 استارز', callback_data='shop_3_10000'))
+    markup.add(InlineKeyboardButton('50000 سکه 🪙 | 10 استارز', callback_data='shop_10_50000'))
+    return markup
+
 #------------------------------------------------------commands-------------------------------------------------
 @bot.message_handler(commands=['start'])
 def command_start(m):
     cid = m.chat.id
     print(m.from_user)
-    database.insert_user(cid, m.from_user.first_name)
     bot.copy_message(cid, channel_text, 12,reply_markup= reply_markup_main())
     if cid == admin:
+        database.insert_user(cid, m.from_user.first_name)
         bot.send_message(cid, "ادمین گرامی برای  تنظیمات ربات از دستور /config استفاده کنید")
 
-
-
+    if m.text.endswith('start') == False:
+        check_cid = database.select_user(cid)
+        if check_cid == []:
+            database.insert_user(cid, m.from_user.first_name)
+            uid = int(m.text.split(' ')[1])
+            check = database.select_user(uid)
+            if len(check) > 0:
+                info_user = check[0]
+                database.update_user(info_user['inventory']+400, uid)
+                bot.send_message(uid ,robot_text['invite_msg_user'].format(m.from_user.first_name))
+    else:
+        database.insert_user(cid, m.from_user.first_name)
 @bot.message_handler(commands=['config'])
 def command_start(m):
     cid = m.chat.id
@@ -215,6 +252,80 @@ def command_start(m):
     
 
 #---------------------------------------------------callback------------------------------------------------------------    
+@bot.callback_query_handler(func=lambda call: call.data.startswith("deleteadv"))
+def call_callback_panel_sends(call):
+    cid = call.message.chat.id
+    mid = call.message.message_id
+    data = call.data.split("_")  
+    if len(data) > 1:
+        database.delete_adv(int(data[1]))
+        list_adv = database.select_adv()
+        if len(list_adv) > 0:
+            markup = InlineKeyboardMarkup()
+            for adv in list_adv:
+                markup.add(InlineKeyboardButton(adv['title'], callback_data=f'deleteadv_{adv["channel_id"]}'))
+            markup.add(InlineKeyboardButton(robot_text['back'], callback_data = 'admin_back_main'))
+            bot.edit_message_text('برای حذف کانال مورد نظر بر روی آن کلیک کنید',cid, mid, reply_markup=markup)
+        else:
+            markup = InlineKeyboardMarkup()
+            markup.add(InlineKeyboardButton(robot_text['back'], callback_data = 'admin_back_main'))
+            bot.edit_message_text('تمامی کانال ها حذف شدند',cid, mid,reply_markup=markup)
+
+    else:
+        list_adv = database.select_adv()
+        if len(list_adv) > 0:
+            markup = InlineKeyboardMarkup()
+            for adv in list_adv:
+                markup.add(InlineKeyboardButton(adv['title'], callback_data=f'deleteadv_{adv["channel_id"]}'))
+            markup.add(InlineKeyboardButton(robot_text['back'], callback_data = 'admin_back_main'))
+            bot.edit_message_text('برای حذف کانال مورد نظر بر روی آن کلیک کنید',cid, mid, reply_markup=markup)
+        else:
+            bot.answer_callback_query(call.id, 'هنوز هیچ کانالی اضافه نشده')
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("adv"))
+def call_callback_panel_sends(call):
+    cid = call.message.chat.id
+    mid = call.message.message_id
+    check = False
+    seke = 0 
+    number = 0
+    for advtest in dict_user_adv[cid]:
+        print(cid, advtest)
+        if is_user_member(cid, advtest):
+            database.insert_advcheck(advtest, cid)
+            seke += 400
+            number += 1
+    if seke!= 0 :
+        bot.delete_message(cid, mid)
+        info = database.select_user(cid)[0]
+        print(info)
+        database.update_user(info['inventory']+seke, cid)
+        bot.send_message(cid, robot_text['adv_msg'].format(number, seke))
+
+        markup = InlineKeyboardMarkup()
+        list_adv = database.select_adv()
+        for adv in list_adv:
+            check_old_join = database.select_advcheck(adv['channel_id'], cid)
+            if is_user_member(cid, adv['channel_id']) == False and len(check_old_join) == 0:
+                check = True
+                markup.add(InlineKeyboardButton(adv['title'], url = adv['link']))
+            markup.add(InlineKeyboardButton('بررسی', callback_data='adv'))
+
+        if check:
+            bot.copy_message(cid, channel_text,30, reply_markup=markup)
+
+        # else:
+        #     bot.copy_message(cid, channel_text,28)
+
+    else:
+        bot.answer_callback_query(call.id, 'شما هنوز داخل هیچ کانالی عضو نشده اید')
+
+
+
+
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith("sends"))
 def call_callback_panel_sends(call):
     cid = call.message.chat.id
@@ -313,6 +424,43 @@ def def_admin(call):
         bot.reply_to(call.message, robot_text['no_arrived_admin'])
 
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith("shop"))
+def def_admin(call):
+    cid = call.message.chat.id
+    mid = call.message.message_id
+    data = call.data.split("_")
+    if data[1] == 'accept':
+        uid = int(data[2])
+        umid = int(data[3])
+        seke = int(data[4])
+        info = database.select_user(uid)[0]
+        database.update_user(info['inventory'] + seke , uid)
+        bot.edit_message_reply_markup(cid, mid)
+        bot.send_message(cid, robot_text['accept_shop'], reply_to_message_id = mid)
+        print(data)
+        bot.send_message(uid, robot_text['accept_shop_for_uid'].format(seke, info['inventory'] + seke), reply_to_message_id=umid)
+
+    elif data[1] == 'reject':
+        uid = int(data[2])
+        umid = int(data[3])
+        bot.edit_message_reply_markup(cid, mid)
+        bot.send_message(cid, robot_text['reject_shop'], reply_to_message_id = mid)
+        bot.send_message(uid, robot_text['reject_shop_for_uid'], reply_to_message_id=umid)
+
+
+    else:
+        number_seke = int(data[2])
+        stare = int(data[1])
+        markup = InlineKeyboardMarkup()
+        markup.add(InlineKeyboardButton('قبول کردن', callback_data=f'shop_accept_{cid}_{mid}_{number_seke}'), InlineKeyboardButton('رد کردن', callback_data=f'shop_reject_{cid}_{mid}'))
+        print(call.message)
+        msg = bot.send_message(admin, robot_text['rezerv_shop'].format('@'+str(call.message.chat.username), f'[{call.message.chat.first_name}](tg://user?id={cid})',number_seke, stare), reply_markup=markup ,parse_mode= 'Markdown')
+        bot.reply_to(msg, robot_text['admin_shop_tozih'])
+        # bot.delete_message(cid, mid)
+        bot.edit_message_reply_markup(cid, mid)
+        bot.send_message(cid, robot_text['msg_send_shop'].format(number_seke, stare), reply_markup = reply_markup_main())
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith("buy"))
 def def_admin(call):
     cid = call.message.chat.id
@@ -353,6 +501,7 @@ def def_admin(call):
                 check = isinstanc_game.select_letter(id_letter)
 
                 if check == 'no':
+                    print(11111111111111111111111)
                     isinstanc_game.wrong_completed()
                     bot.answer_callback_query(call.id, 'اشتباه است')
                     msg_game(call.message)
@@ -364,13 +513,25 @@ def def_admin(call):
                         database.levelup(cid)
                         dict_cid_class[cid] = utils.game(cid, isinstanc_game.level+1)
                         bot.edit_message_text(get_text_game(cid),cid,mid, reply_markup= show_number_words(cid))
+                    
+                    elif dict_cid_class[cid].letters == 'endgame':
+                        database.levelup(cid)
+                        dict_cid_class[cid] = utils.game(cid, isinstanc_game.level+1)
+                        bot.edit_message_text(get_text_game(cid),cid,mid, reply_markup= show_number_words(cid))   
 
                     else:
                         msg_game(call.message)
 
                 else:
+                    print(3333333333333333)
                     bot.answer_callback_query(call.id, 'انتخاب شد')
-                    msg_game(call.message)
+                    
+                    if dict_cid_class[cid].letters == 'endgame':
+                        database.levelup(cid)
+                        dict_cid_class[cid] = utils.game(cid, isinstanc_game.level+1)
+                        bot.edit_message_text(get_text_game(cid),cid,mid, reply_markup= show_number_words(cid))  
+                    else: 
+                        msg_game(call.message)
             else:
                 bot.answer_callback_query(call.id, 'اول مشخص کنید که چه کلمه ای را کامل میکنید.')
         else:
@@ -414,7 +575,14 @@ def def_admin(call):
     if cid == admin :
         mid = call.message.message_id
         data = call.data.split("_")
-        if data[1] == 'amar':
+        if data[1] == 'adv':
+            bot.delete_message(cid, mid)
+            markup=InlineKeyboardMarkup()
+            userStep[cid] = 50 
+            markup.add(InlineKeyboardButton("انصراف",callback_data="admin_back_main"))
+            bot.copy_message(cid, channel_text,32 , reply_markup=markup) 
+
+        elif data[1] == 'amar':
             markup=InlineKeyboardMarkup()
             markup.add(InlineKeyboardButton("بازگشت",callback_data="admin_back_main"))
             all_user = database.select_all_user()
@@ -463,6 +631,7 @@ def def_admin(call):
             text = robot_text['msg_edit_word'].format(' '.join(dict_letter['letter']), text_words)
             markup = InlineKeyboardMarkup()
             markup.add(InlineKeyboardButton(robot_text['btn_edit'], callback_data = f'admin_edit_{level}'))
+            markup.add(InlineKeyboardButton(robot_text['btn_addword'], callback_data = f'admin_addword_{level}'))
             markup.add(InlineKeyboardButton(robot_text['back'], callback_data = 'admin_back_listletters'))
             bot.edit_message_text(text, cid, mid, reply_markup = markup)
 
@@ -475,8 +644,19 @@ def def_admin(call):
             userStep[cid] = 3
             bot.send_message(cid, robot_text['edit_word'], reply_markup = markup)
 
+        elif data[1] == 'addword':
+            level = int(data[2])
+            dict_add_word[cid] = level
+            info = database.select_one_letter(level)[0]
+            bot.delete_message(cid ,mid)
+            markup = ReplyKeyboardMarkup(resize_keyboard=True)
+            markup.add(robot_text['cancel'])
+            userStep[cid] = 60
+            bot.send_message(cid, robot_text['Add_words'].format(level, info['letter']), reply_markup = markup)
+
+
         elif data[1]=="brodcast":
-            markup=InlineKeyboardMarkup()
+            markup = InlineKeyboardMarkup()
             markup.add(InlineKeyboardButton("بازگشت",callback_data="admin_back_main"))
             bot.edit_message_text("برای ارسال همگانی پیام لطفا پیام خود را ارسال کنید و در غیر این صورت برای بازگشت از دکمه زیر استفاده کنید",cid,mid,reply_markup=markup)
             userStep[cid] = 30
@@ -495,7 +675,7 @@ def get_photo(m):
         userStep[cid] == 0
         markup = InlineKeyboardMarkup()
         markup.add(InlineKeyboardButton('قبول کردن', callback_data=f'arrived_accept_{cid}_{mid}_{dict_plan_information[cid]["seke"]}'), InlineKeyboardButton('رد کردن', callback_data=f'arrived_reject_{cid}_{mid}'))
-        bot.copy_message(admin, cid, mid, caption=robot_text['capcion_photo'].format('@'+m.from_user.username, f'[{m.from_user.first_name}](tg://user?id={cid})',dict_plan_information[cid]['seke'], dict_plan_information[cid]['price'] ), reply_markup = markup, parse_mode= 'Markdown')
+        bot.copy_message(admin, cid, mid, caption=robot_text['capcion_photo'].format('@'+str(m.from_user.username), f'[{m.from_user.first_name}](tg://user?id={cid})',dict_plan_information[cid]['seke'], dict_plan_information[cid]['price']), reply_markup = markup, parse_mode= 'Markdown')
         bot.send_message(cid, robot_text['send_arrive'], reply_markup=reply_markup_main(), reply_to_message_id=mid)
         
     else:
@@ -503,7 +683,7 @@ def get_photo(m):
 
 
 #----------------------------------------------------------m.text------------------------------------------------
-#➡⬅1⃣2⃣3⃣4⃣5⃣6⃣7⃣8⃣8⃣9⃣🔟
+# ➡ ⬅ 1⃣ 2⃣ 3⃣ 4⃣ 5⃣ 6⃣ 7⃣ 8⃣ 8⃣ 9⃣ 🔟
 
 @bot.message_handler(func=lambda m: m.text.startswith(robot_text['best']))
 def handel_text(m):
@@ -596,6 +776,54 @@ def handel_text(m):
             reply_markup = ReplyKeyboardRemove()
             bot.send_message(cid, robot_text['msg_edited'].format(level), reply_markup = reply_markup)
             bot.copy_message(cid, channel_text, 2, reply_markup=markup_config_admin())
+
+
+@bot.message_handler(func=lambda m: m.text == robot_text['invite'])
+def handel_text(m):
+    cid=m.chat.id
+    text=m.text
+    mid=m.message_id
+    info = bot.get_me()
+    link = f'https://t.me/{info.username}?start={cid}'
+    bot.send_message(cid, robot_text['msg_invite'].format(link))
+
+@bot.message_handler(func=lambda m: m.text == robot_text['shop'])
+def handel_text(m):
+    cid=m.chat.id
+    text=m.text
+    mid=m.message_id
+    bot.copy_message(cid, channel_text, 24, reply_markup=shop_markup())
+
+@bot.message_handler(func=lambda m: m.text == robot_text['tabligh'])
+def handel_text(m):
+    cid=m.chat.id
+    text=m.text
+    mid=m.message_id
+    list_adv = database.select_adv()
+    if len(list_adv) > 0:
+        markup = InlineKeyboardMarkup()
+        check = False
+        dict_user_adv.setdefault(cid, [])
+        dict_user_adv[cid] = []
+        # list_adv = database.select_adv()
+        for adv in list_adv:
+            check_old_join = database.select_advcheck(adv['channel_id'], cid)
+            if is_user_member(cid, adv['channel_id']) == False and len(check_old_join) == 0:
+                markup.add(InlineKeyboardButton(adv['title'], url=adv['link']))
+                dict_user_adv[cid].append(adv['channel_id'])
+                check = True
+        markup.add(InlineKeyboardButton('بررسی', callback_data='adv'))
+        if check:
+            bot.copy_message(cid, channel_text, 30, reply_markup= markup)
+        else:
+            bot.copy_message(cid, channel_text, 28)
+        # bot.copy_message(cid, channel_text, 26)
+    else:
+        bot.copy_message(cid, channel_text, 42)
+
+
+
+
 #---------------------------------------------------------userstep---------------------------------------------------
 @bot.message_handler(func=lambda m: get_user_step(m.chat.id)==1)
 def defini_word(m):
@@ -696,6 +924,55 @@ def add_word(m):
         markup.add(InlineKeyboardButton("تایید",callback_data=f"sends_forall_{mid}"))
         markup.add(InlineKeyboardButton("بازگشت به پنل",callback_data="admin_back_main"))
         bot.send_message(cid,"پیام شما دریافت شد برای فوروارد همگانی تایید را بزنید",reply_markup=markup)
+
+@bot.message_handler(func=lambda m: get_user_step(m.chat.id)==50)
+def add_word(m):
+    global rezerv_adv
+    cid=m.chat.id
+    mid = m.message_id
+    if cid == admin:
+        print(m)
+        if m.forward_from_chat:
+            channel_id = m.forward_from_chat.id
+            chat_member = bot.get_chat_member(channel_id, bot.get_me().id)
+            if chat_member.status in ['administrator', 'creator']:
+                check_database = database.select_one_adv(channel_id)
+                if len(check_database) == 0:
+                    rezerv_adv = [channel_id, m.forward_from_chat.title]
+                    userStep[cid] = 51
+                    bot.copy_message(cid, channel_text, 38)
+                else:
+                     bot.send_message(cid, 'این کانال قبلا اضافه شده')
+            else:
+                bot.copy_message(cid, channel_text, 36)
+        else:
+            bot.copy_message(cid, channel_text, 34)
+
+@bot.message_handler(func=lambda m: get_user_step(m.chat.id)==51)
+def add_word(m):
+    global rezerv_adv
+    cid=m.chat.id
+    mid = m.message_id
+    text = m.text
+    if cid == admin:
+        database.insert_adv(rezerv_adv[0],rezerv_adv[1], text)
+        userStep[cid] = 0
+        bot.copy_message(cid, channel_text, 40, reply_markup=reply_markup_main())
+
+
+@bot.message_handler(func=lambda m: get_user_step(m.chat.id)==60)
+def add_word(m):
+    cid=m.chat.id
+    mid = m.message_id
+    text = m.text
+    if cid == admin:
+        level = dict_add_word[cid]
+        info_letter = database.select_one_letter(level)[0]
+        if can_form_word(text, info_letter['letter']):
+            database.insert_word(level, text)
+            bot.copy_message(cid, channel_text, 44)
+        else:
+            bot.copy_message(cid, channel_text, 10)
 
 
 @bot.message_handler(func=lambda m: True)

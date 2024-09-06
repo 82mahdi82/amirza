@@ -13,10 +13,11 @@ def ErrorReport(message, FunctionName, Type='General'):
 
 def CreateDatabase():
     import mysql.connector
+    # config = {'user': 'root', 'password': 'ma8h2dii', 'host': 'localhost'}
     config = {'user': 'root', 'password': 'bWFW2PnBx6pPtnTbzf1s', 'host': 'data-oyv-service'}
     conn = mysql.connector.connect(**config)
     mycursor = conn.cursor()
-    # mycursor.execute("DROP DATABASE IF EXISTS word_game")
+    mycursor.execute("DROP DATABASE IF EXISTS word_game")
     mycursor.execute("CREATE DATABASE IF NOT EXISTS word_game")
     conn.commit()
     conn.close()
@@ -85,9 +86,48 @@ CREATE TABLE IF NOT EXISTS users (
 );
 """
             c.execute(SQL_QUERY_USERS)
+
+            SQL_QUERY_ADV="""
+CREATE TABLE IF NOT EXISTS adv (
+    channel_id       BIGINT PRIMARY KEY,
+    title            VARCHAR(200) DEFAULT NULL,
+    link             VARCHAR(200) DEFAULT NULL,
+    insert_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_update      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+"""
+            c.execute(SQL_QUERY_ADV)
+
+            SQL_QUERY_ADVCHECK="""
+CREATE TABLE IF NOT EXISTS advcheck (
+    channel_id       BIGINT ,
+    cid             BIGINT DEFAULT NULL,
+    insert_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_update      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+"""
+            c.execute(SQL_QUERY_ADVCHECK)
         except mysql.connector.errors.IntegrityError:
             ErrorReport('CREATE TABLE','CreateTable',Type='SQL Queries')
 
+
+
+def insert_advcheck(channel_id, cid):
+    with SQL('insert_advcheck') as c:
+        try:
+            c.execute(f'INSERT IGNORE INTO advcheck (channel_id, cid) VALUES (%s, %s)', (channel_id, cid))
+            return c.lastrowid
+        except mysql.connector.errors.IntegrityError:
+            ErrorReport('insert TABLE','advcheck',Type='SQL Queries')
+
+
+def insert_adv(channel_id,title, link):
+    with SQL('insert_adv') as c:
+        try:
+            c.execute(f'INSERT IGNORE INTO adv (channel_id,title, link) VALUES (%s, %s)', (channel_id,title, link))
+            return c.lastrowid
+        except mysql.connector.errors.IntegrityError:
+            ErrorReport('insert TABLE','adv',Type='SQL Queries')
 
 def insert_letters(letter, level):
     with SQL('insert_letters') as c:
@@ -113,6 +153,15 @@ def insert_user(cid, name):
         except mysql.connector.errors.IntegrityError:
             ErrorReport('insert TABLE','users',Type='SQL Queries')
 
+def select_adv():
+    with SQL('select_adv') as c:
+        try:
+            c.execute('SELECT * FROM adv')
+            res = c.fetchall()
+            return res
+        except mysql.connector.errors.IntegrityError:
+            ErrorReport('select TABLE','select_adv',Type='SQL Queries')
+
 def select_letters():
     with SQL('select_letters') as c:
         try:
@@ -121,6 +170,24 @@ def select_letters():
             return res
         except mysql.connector.errors.IntegrityError:
             ErrorReport('select TABLE','select_letters',Type='SQL Queries')
+
+def select_advcheck(channel_id, cid):
+    with SQL('select_advcheck') as c:
+        try:
+            c.execute('SELECT * FROM advcheck where channel_id = %s and cid = %s', (channel_id,cid))
+            res = c.fetchall()
+            return res
+        except mysql.connector.errors.IntegrityError:
+            ErrorReport('select TABLE','select_advcheck',Type='SQL Queries')
+
+def select_one_adv(channel_id):
+    with SQL('select_one_adv') as c:
+        try:
+            c.execute('SELECT * FROM adv where channel_id = %s', (channel_id,))
+            res = c.fetchall()
+            return res
+        except mysql.connector.errors.IntegrityError:
+            ErrorReport('select TABLE','select_one_adv',Type='SQL Queries')
 
 def select_one_letter(level):
     with SQL('select_one_letter') as c:
@@ -200,6 +267,13 @@ def delete_words(level):
         except mysql.connector.errors.IntegrityError:
             ErrorReport('delete words','delete_words',Type='SQL Queries')
 
+
+def delete_adv(channel_id):
+    with SQL('delete_adv') as c:
+        try:
+            c.execute('delete from adv where channel_id = %s',(channel_id,))
+        except mysql.connector.errors.IntegrityError:
+            ErrorReport('delete words','delete_adv',Type='SQL Queries')
 
 # CreateDatabase()
 # CreateTable()

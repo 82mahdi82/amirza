@@ -35,7 +35,7 @@ class game:
             self.selected_letters[index] = letter_id
 
             # self.selected_letters.append(letter_id)
-            print(self.word_progress.replace(' ','') , self.selected_letters)
+            print('self.selected_letters',self.word_progress.replace(' ','') , self.selected_letters)
             # if len(self.word_progress.replace(' ','')) == len(self.selected_letters):
             if None not in self.selected_letters:
                 test_word = ''
