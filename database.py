@@ -124,7 +124,7 @@ def insert_advcheck(channel_id, cid):
 def insert_adv(channel_id,title, link):
     with SQL('insert_adv') as c:
         try:
-            c.execute(f'INSERT IGNORE INTO adv (channel_id,title, link) VALUES (%s, %s)', (channel_id,title, link))
+            c.execute(f'INSERT IGNORE INTO adv (channel_id,title, link) VALUES (%s, %s,%s)', (channel_id,title, link))
             return c.lastrowid
         except mysql.connector.errors.IntegrityError:
             ErrorReport('insert TABLE','adv',Type='SQL Queries')
