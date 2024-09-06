@@ -68,6 +68,7 @@ def markup_config_admin():
     markup.add(InlineKeyboardButton('آمار',callback_data='admin_amar'))
     markup.add(InlineKeyboardButton('ارسال همگانی',callback_data='admin_brodcast'),InlineKeyboardButton('فوروارد همگانی',callback_data='admin_forall'))
     markup.add(InlineKeyboardButton('افزودن کانال تبلیغاتی', callback_data='admin_adv'))
+    markup.add(InlineKeyboardButton('حذف کانال های تبلیغاتی', callback_data='deleteadv'))
     return markup
 
 def reply_markup_main():
